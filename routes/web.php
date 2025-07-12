@@ -8,6 +8,7 @@ use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\PlaylistController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PlaylistByIdController;
+use App\Http\Controllers\AudioController;
 
 // Ruta para usuarios no autenticados - redirige a login
 Route::get('/', function () {
@@ -49,6 +50,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('websocket-test', function () {
         return inertia('websocket-test');
     })->name('websocket.test');
+
+    // Audio streaming routes
+    Route::controller(AudioController::class)->group(function () {
+        Route::get('audio/stream/{songId}', 'stream')->name('audio.stream');
+        Route::get('audio/stream-range/{songId}', 'streamWithRange')->name('audio.stream.range');
+        Route::get('audio/download-url/{songId}', 'getDownloadUrl')->name('audio.download.url');
+    });
 
 });
 

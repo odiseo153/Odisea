@@ -23,7 +23,7 @@ export class SongService extends BaseService {
         return this.post(`/${userId}`, songData);
     }
 
-    async updateSong(id: string, songData: Song) {
+    async updateSong(id: string, songData: any) {
         return this.put(`/${id}`, songData);
     }
 

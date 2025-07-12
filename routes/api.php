@@ -66,6 +66,7 @@ Route::prefix('songs')->group(function () {
     Route::get('/search', [SongController::class, 'search']);
     Route::post('/{song}/favorite/{user}', [SongController::class, 'favorite']);
     Route::post('/{user}', [SongController::class, 'store']);
+    Route::put('/{song}', [SongController::class, 'update']);
     Route::delete('/{song}', [SongController::class, 'destroy']);
 });
 

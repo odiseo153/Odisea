@@ -15,6 +15,7 @@ import {
   Calendar,
   BarChart3,
   Plus,
+  Pencil,
   ExternalLink,
 } from "lucide-react"
 import { Link, usePage } from "@inertiajs/react"
@@ -30,6 +31,7 @@ import { BreadcrumbItem, SharedData, Song } from "@/types"
 import PlayerBar from "@/components/player-bar"
 import AppLayout from "@/layouts/app-layout"
 import { usePlayer } from "@/contexts/PlayerContext"
+import EditSong from '@/components/Music/EditSong';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -99,7 +101,7 @@ console.log(song)
             <h1 className="text-3xl md:text-5xl font-bold mb-4">{song.title}</h1>
 
             <div className="flex items-center gap-3 mb-4">
-              <Link href={`/artist/${song.artist?.id}`} className="flex items-center gap-2 hover:underline">
+              <Link href={`/artists/${song.artist?.id}`} className="flex items-center gap-2 hover:underline">
                 <img
                   src={song.artist?.image_url || "/placeholder.svg"}
                   alt={song.artist?.name || "Artist image"}
@@ -171,6 +173,9 @@ console.log(song)
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              { song.added_by == auth.user.id &&
+                    <EditSong song={song} />
+                }
             </div>
           </div>
         </div>

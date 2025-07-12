@@ -9,8 +9,22 @@ class Song extends BaseModel
     use ModelHelperTrait;
 
     protected $fillable = ['platform_id', 'artist_id', 'album_id', 'title', 'duration', 'cover_url', 'added_by'];
-    protected $with = ['platform','artist','album','download'];
-    protected $appends = ['other_songs','play_count'];
+    // Removed heavy eager loading to improve performance
+     protected $with = ['artist','download'];
+    // Removed appends to avoid N+1 query problems
+    // protected $appends = ['other_songs','play_count'];
+
+    // Use this method when you need minimal Song data
+    public function scopeMinimal($query)
+    {
+        return $query->select('id', 'title', 'duration', 'artist_id', 'album_id', 'cover_url');
+    }
+
+    // Use this method when you need full Song data with relationships
+    public function scopeWithRelations($query)
+    {
+        return $query->with(['platform', 'artist', 'album', 'download']);
+    }
 
     public function platform()
     {
@@ -39,7 +53,7 @@ class Song extends BaseModel
 
     public function genders()
     {
-        return $this->belongsToMany(Gender::class);
+        return $this->belongsToMany(Gender::class, 'gender_songs');
     }
 
     public function addedBy()
@@ -52,13 +66,28 @@ class Song extends BaseModel
        return $this->belongsToMany(User::class, 'favorite_songs');
     }
 
+    // Optimized methods - call these explicitly when needed, not as accessors
+    public function getOtherSongs()
+    {
+        return Song::where('artist_id', $this->artist_id)
+            ->where('id', '!=', $this->id)
+            ->limit(10) // Limit to prevent excessive data loading
+            ->get();
+    }
+
+    public function getPlayCount()
+    {
+        return $this->interactions()->sum('play_count') ?? 0;
+    }
+
+    // Keep accessors but make them lazy-loaded and cached
     public function getOtherSongsAttribute()
     {
-        return Song::where('artist_id', $this->artist_id)->where('id', '!=', $this->id)->get();
+        return $this->getOtherSongs();
     }
 
     public function getPlayCountAttribute()
     {
-        return $this->interactions()->sum('play_count');
+        return $this->getPlayCount();
     }
 }

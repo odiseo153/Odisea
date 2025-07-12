@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Services\SongService;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Music\CreateSongRequest;
+use App\Http\Requests\Music\SongRequest;
 use Illuminate\Support\Facades\DB;
 
 class SongController extends Controller
@@ -63,7 +63,7 @@ class SongController extends Controller
     }
 
 
-    public function store(CreateSongRequest $request,User $user)
+    public function store(SongRequest $request,User $user)
     {
         try {
             $song = $this->songService->createSong($request->toArray(), $user);
@@ -101,8 +101,9 @@ class SongController extends Controller
     }
 
 
-    public function update(CreateSongRequest $request, Song $song)
+    public function update(SongRequest $request, Song $song)
     {
+        \Log::info($request);
 
         try {
             $this->songService->updateSong($song, $request->validated());

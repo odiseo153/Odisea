@@ -25,7 +25,7 @@ class SongRepository extends BaseRepository
     }
 
 
-    public function getPaginated(int $perPage = 10, array $filters = [], array $sorts = [], string $defaultSort = 'created_at', array $with = ['platform','artist','album','genders']   )
+    public function getPaginated(int $perPage = 10, array $filters = [], array $sorts = [], string $defaultSort = 'created_at', array $with = ['platform','artist','album','download']   )
     {
         $filters=[
             AllowedFilter::partial('title'),
@@ -42,11 +42,15 @@ class SongRepository extends BaseRepository
             AllowedSort::field('id'),
         ];
 
+        // Use static fillable array instead of querying first record
+        $fillableFields = ['platform_id', 'artist_id', 'album_id', 'title', 'duration', 'cover_url', 'added_by'];
+
         return QueryBuilder::for(Song::query())
         ->allowedFilters($filters)
         ->allowedSorts($sorts)
-        ->allowedFields(Song::first()->getFillable())
+        ->allowedFields($fillableFields)
         ->allowedIncludes($with)
+        ->with(['download'])
         ->defaultSort($defaultSort)
         ->paginate($perPage);
     }

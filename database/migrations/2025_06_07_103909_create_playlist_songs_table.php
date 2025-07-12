@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('playlist_songs', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->foreignUuid('playlist_id')->constrained()->onDelete('cascade');
             $table->foreignUuid('song_id')->constrained()->onDelete('cascade');
             $table->timestamps();

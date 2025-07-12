@@ -4,10 +4,22 @@ namespace App\Http\Requests\Music;
 
 use App\Http\Requests\BaseRequest;
 
-class CreateSongRequest extends BaseRequest
+class SongRequest extends BaseRequest
 {
     public function rules(): array
     {
+        $method = $this->method();
+        if($method == 'PUT'){
+            return [
+                'platform_id' => 'sometimes|string|exists:platforms,id',
+                'artist_id' => 'sometimes|string|exists:artists,id',
+                'album_id' => 'nullable|string|exists:albums,id',
+                'title' => 'sometimes|string|max:255',
+                'duration' => 'nullable|integer|min:1',
+                'cover_url' => 'nullable|url|max:500',
+                'file_path' => 'nullable|string',
+            ];
+        }
         return [
             'platform_id' => 'required|string|exists:platforms,id',
             'artist_id' => 'required|string|exists:artists,id',

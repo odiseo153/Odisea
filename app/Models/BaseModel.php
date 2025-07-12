@@ -14,7 +14,7 @@ abstract class BaseModel extends Model
     use SoftDeletes, HasFactory, HasUuids;
 
     protected $keyType = 'string';
-    public $incrementing = true; // Cambiado a true para permitir autoincremento
+    public $incrementing = false; // UUIDs no son auto-incrementales
 
     protected $guarded = []; // Permitir asignación masiva
 

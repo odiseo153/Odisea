@@ -25,6 +25,7 @@ export function MusicCard({ song, destroy }: { song: Song, destroy?: (song: Song
         }
     }
 
+    /*
     const addInteraciont = async () => {
         try {
             await songService.addInteraciont(song.id,auth.user.id || "");
@@ -32,6 +33,7 @@ export function MusicCard({ song, destroy }: { song: Song, destroy?: (song: Song
             console.error('Error adding interaciont:', error);
         }
     }
+    */
 
     const isCurrentlyPlaying = currentSong?.id === song.id && isPlaying;
 
@@ -50,7 +52,6 @@ export function MusicCard({ song, destroy }: { song: Song, destroy?: (song: Song
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => {
                 handlePlay();
-                addInteraciont();
               }}>
                 {isCurrentlyPlaying ? (
                     <Pause className="w-5 h-5 text-white" />

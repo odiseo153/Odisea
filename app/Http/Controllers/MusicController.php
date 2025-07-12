@@ -34,7 +34,8 @@ protected $songService;
      */
     public function show(Request $request, Song $song): Response
     {
-        $song->other_songs = Song::where('artist_id', $song->artist_id)->where('id', '!=', $song->id)->get();
+        // Optimized: Use the method from the model with limit
+        $song->other_songs = $song->getOtherSongs();
         $song->is_favorite = $request->user()->favoriteSongs()->where('song_id', $song->id)->exists();
 
         return Inertia::render('song/songById', [

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('songs', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('platform_id')->constrained('platforms')->onDelete('cascade');
+            $table->foreignUuid('platform_id')->nullable()->constrained('platforms')->onDelete('cascade');
             $table->foreignUuid('artist_id')->nullable()->constrained('artists')->onDelete('cascade');
             $table->foreignUuid('album_id')->nullable()->constrained('albums')->onDelete('cascade');
             $table->foreignUuid('added_by')->constrained('users')->onDelete('cascade');

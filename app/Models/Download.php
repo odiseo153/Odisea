@@ -22,11 +22,28 @@ class Download extends BaseModel
 
     public function setFilePathAttribute($value)
     {
-        if (filter_var($value, FILTER_VALIDATE_URL)) {
-            $this->attributes['file_path'] = $value;
-        } else {
+        // Si el valor es base64, lo procesamos, si no, lo asignamos tal cual
+        if ($this->isBase64($value)) {
             $this->attributes['file_path'] = $this->handleBase64File($value, 'downloads');
+        } else {
+            $this->attributes['file_path'] = $value;
         }
+    }
+
+    protected function isBase64($value)
+    {
+        // Detecta si el string parece ser base64 (data URI o solo base64)
+        if (is_string($value)) {
+            if (preg_match('/^data:\w+\/\w+;base64,/', $value)) {
+                return true;
+            }
+            // Check if it's a valid base64 string (not a file path or URL)
+            $decoded = base64_decode($value, true);
+            if ($decoded !== false && base64_encode($decoded) === $value) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

@@ -14,12 +14,33 @@ class DashboardController extends Controller
     public function index(): Response
     {
        $data=[
-        "most_played_song" => Song::withCount('interactions')->orderByDesc('interactions_count')->first(),
-        "most_played_songs" => Song::withCount('interactions')->orderByDesc('interactions_count')->take(5)->get(),
-        "best_albums"=>Album::withCount('interactions')->orderByDesc('interactions_count')->take(5)->get(),
-        "best_artists"=>Artist::withCount('interactions')->orderByDesc('interactions_count')->take(5)->get(),
-        "best_platforms"=>Platform::withCount('interactions')->orderByDesc('interactions_count')->take(5)->get(),
-        "best_genres"=>Gender::take(5)->get()->sortByDesc('interactions_count'),
+        "most_played_song" => Song::select('id', 'title', 'artist_id', 'album_id')
+            ->withCount('interactions')
+            ->orderByDesc('interactions_count')
+            ->first(),
+        "most_played_songs" => Song::select('id', 'title', 'artist_id', 'album_id')
+            ->withCount('interactions')
+            ->orderByDesc('interactions_count')
+            ->take(5)
+            ->get(),
+        "best_albums"=>Album::select('id', 'name', 'artist_id', 'cover_url')
+            ->withCount('interactions')
+            ->orderByDesc('interactions_count')
+            ->take(5)
+            ->get(),
+        "best_artists"=>Artist::select('id', 'name', 'image_url')
+            ->withCount('interactions')
+            ->orderByDesc('interactions_count')
+            ->take(5)
+            ->get(),
+        "best_platforms"=>Platform::select('id', 'name', 'logo_url')
+            ->withCount('interactions')
+            ->orderByDesc('interactions_count')
+            ->take(5)
+            ->get(),
+        "best_genres"=>Gender::select('id', 'name')
+            ->take(5)
+            ->get(),
 
        ];
 
