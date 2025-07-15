@@ -7,14 +7,15 @@ use App\Models\Interaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AudioController;
 use App\Http\Controllers\Api\SongController;
 use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\AlbumController;
+use App\Http\Controllers\WebSocketController;
+use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\PlatformController;
 use App\Http\Controllers\Api\PlaylistController;
 use App\Http\Controllers\Api\FavoriteSongController;
-use App\Http\Controllers\WebSocketController;
 
 // Auth routes
 Route::get('/user', function (Request $request) {
@@ -59,6 +60,14 @@ Route::post('interactions', function (Request $request) {
     return response()->noContent();
 });
 
+
+Route::controller(AudioController::class)->middleware('cors')->group(function () {
+    Route::get('audio/stream/{song}', 'stream')->name('audio.stream');
+    Route::get('audio/stream-basic/{song}', 'streamBasic')->name('audio.stream.basic');
+    Route::get('audio/info/{songId}', 'getAudioInfo')->name('audio.info');
+    Route::get('audio/download-url/{songId}', 'getDownloadUrl')->name('audio.download.url');
+    Route::options('audio/stream/{songId}', 'options')->name('audio.options');
+});
 
 // Song routes
 Route::prefix('songs')->group(function () {

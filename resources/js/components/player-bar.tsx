@@ -4,18 +4,20 @@ import { Slider } from '@/components/ui/slider';
 import { Heart, SkipBack, SkipForward, Play, Pause, Volume2, VolumeX, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePlayer } from '@/contexts/PlayerContext';
+import {audioService} from '@/services/audioService';
 
 export default function PlayerBar() {
-    const { currentSong, isPlaying, togglePlay, setCurrentSong, currentTime, setCurrentTime } = usePlayer();
-    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const { currentSong, isPlaying, togglePlay, setCurrentSong, setCurrentTime } = usePlayer();
+    const audioRef = useRef<HTMLAudioElement>(null);
     const [isMuted, setIsMuted] = useState(false);
-    const [volume, setVolume] = useState(75);
+    const [volume, setVolume] = useState(0.75);
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [isFirstLoad, setIsFirstLoad] = useState(true);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isSeekable, setIsSeekable] = useState(false);
+
 
     // Format time from seconds to MM:SS
     const formatTime = (seconds: number) => {
@@ -25,82 +27,128 @@ export default function PlayerBar() {
         return `${mins}:${secs.toString().padStart(2, "0")}`;
     };
 
-    // Enhanced audio event handlers
-    const handleTimeUpdate = useCallback(() => {
-        const audio = audioRef.current;
-        if (!audio || isDragging) return;
-        setProgress(audio.currentTime);
-        setCurrentTime(audio.currentTime);
-    }, [isDragging, setCurrentTime]);
+    // Audio event handlers
+    const handlePlay = useCallback(() => {
+        setIsLoading(false);
+    }, []);
+
+    const handlePause = useCallback(() => {
+        // Pause event handler
+    }, []);
 
     const handleLoadedMetadata = useCallback(() => {
         const audio = audioRef.current;
-        if (!audio) return;
-        setDuration(audio.duration);
-        
-        // If this is the first load and we have saved time, restore it
-        if (isFirstLoad && currentTime > 0 && currentTime < audio.duration) {
-            audio.currentTime = currentTime;
-            setProgress(currentTime);
-            setIsFirstLoad(false);
-        } else {
-            setProgress(audio.currentTime);
+        if (audio) {
+            setDuration(audio.duration);
+            setIsLoading(false);
+            
+            // Check if the audio is seekable
+            if (audio.seekable && audio.seekable.length > 0) {
+                setIsSeekable(true);
+            }
         }
-        
-        setIsLoading(false);
-    }, [isFirstLoad, currentTime]);
+    }, []);
 
     const handleCanPlay = useCallback(() => {
+        const audio = audioRef.current;
+        if (audio) {
+            setIsSeekable(audio.seekable && audio.seekable.length > 0);
+            setIsLoading(false);
+        }
+    }, []);
+
+    const handleTimeUpdate = useCallback(() => {
+        if (isDragging) return; // Don't update progress while dragging
+
+        const audio = audioRef.current;
+        if (audio) {
+            const currentTime = audio.currentTime;
+            setProgress(currentTime);
+            setCurrentTime(currentTime);
+        }
+    }, [setCurrentTime, isDragging]);
+
+    const handleEnded = useCallback(() => {
+        setProgress(0);
+        setCurrentTime(0);
+        togglePlay();
+    }, [togglePlay, setCurrentTime]);
+
+    const handleError = useCallback((e: React.SyntheticEvent<HTMLAudioElement>) => {
+        console.error('Audio error:', e);
+        const errorMessage = e.currentTarget?.error?.message || 'Unknown audio error';
+        toast.error(`Error loading audio: ${errorMessage}`);
         setIsLoading(false);
+        setIsSeekable(false);
     }, []);
 
     const handleLoadStart = useCallback(() => {
         setIsLoading(true);
     }, []);
 
-    const handleError = useCallback((error: Event) => {
-        console.error('Audio error:', error);
-        toast.error('Error loading audio');
+    const handleWaiting = useCallback(() => {
+        setIsLoading(true);
+    }, []);
+
+    const handleCanPlayThrough = useCallback(() => {
         setIsLoading(false);
     }, []);
 
-    const handleEnded = useCallback(() => {
-        setProgress(0);
-        togglePlay();
-    }, [togglePlay]);
+    // Control functions
+    const toggleLike = useCallback(() => {
+        setIsLiked(prev => {
+            const newState = !prev;
+            toast.success(newState ? "Added to Liked Songs" : "Removed from Liked Songs");
+            return newState;
+        });
+    }, []);
 
-    // Setup audio event listeners
-    useEffect(() => {
+    const toggleMute = useCallback(() => {
+        setIsMuted(prev => !prev);
+    }, []);
+
+    const handleVolumeChange = useCallback((value: number[]) => {
+        const newVolume = value[0] / 100;
+        setVolume(newVolume);
+        if (newVolume > 0 && isMuted) {
+            setIsMuted(false);
+        }
+    }, [isMuted]);
+
+    const handleProgressChange = useCallback((value: number[]) => {
+        if (!isSeekable) return;
+        
+        const newProgress = value[0];
+        setProgress(newProgress);
+        setCurrentTime(newProgress);
+
         const audio = audioRef.current;
-        if (!audio) return;
+        if (audio && duration > 0) {
+            // Ensure the time is within bounds
+            const seekTime = Math.max(0, Math.min(newProgress, duration));
+            
+            try {
+                audio.currentTime = seekTime;
+            } catch (error) {
+                console.error('Error seeking audio:', error);
+                toast.error('Unable to seek to this position');
+            }
+        }
+    }, [duration, setCurrentTime, isSeekable]);
 
-        audio.addEventListener('timeupdate', handleTimeUpdate);
-        audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-        audio.addEventListener('canplay', handleCanPlay);
-        audio.addEventListener('loadstart', handleLoadStart);
-        audio.addEventListener('error', handleError);
-        audio.addEventListener('ended', handleEnded);
+    const handleProgressDragStart = useCallback(() => {
+        setIsDragging(true);
+    }, []);
 
-        return () => {
-            audio.removeEventListener('timeupdate', handleTimeUpdate);
-            audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-            audio.removeEventListener('canplay', handleCanPlay);
-            audio.removeEventListener('loadstart', handleLoadStart);
-            audio.removeEventListener('error', handleError);
-            audio.removeEventListener('ended', handleEnded);
-        };
-    }, [handleTimeUpdate, handleLoadedMetadata, handleCanPlay, handleLoadStart, handleError, handleEnded]);
+    const handleProgressDragEnd = useCallback(() => {
+        setIsDragging(false);
+    }, []);
 
-    // Volume and mute control
-    useEffect(() => {
-        const audio = audioRef.current;
-        if (!audio) return;
+    const closePlayers = useCallback(() => {
+        setCurrentSong(null);
+    }, [setCurrentSong]);
 
-        audio.volume = volume / 100;
-        audio.muted = isMuted;
-    }, [volume, isMuted]);
-
-    // Play/pause control
+    // Control play/pause manually
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
@@ -119,115 +167,74 @@ export default function PlayerBar() {
         }
     }, [isPlaying, togglePlay]);
 
+    // Set volume and mute
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (audio) {
+            audio.volume = isMuted ? 0 : volume;
+        }
+    }, [volume, isMuted]);
+
     // Reset when song changes
     useEffect(() => {
         if (currentSong) {
             setDuration(0);
+            setProgress(0);
             setIsLoading(true);
-            setIsFirstLoad(true);
-            // Don't reset progress here - let handleLoadedMetadata handle it
+            setIsDragging(false);
+            setIsSeekable(false);
         }
     }, [currentSong]);
 
-    // Enhanced handlers
-    const toggleLike = useCallback(() => {
-        setIsLiked(prev => {
-            const newState = !prev;
-            toast.success(newState ? "Added to Liked Songs" : "Removed from Liked Songs");
-            return newState;
-        });
-    }, []);
+    // Setup time update interval for better progress tracking
+    useEffect(() => {
+        if (!isPlaying || isDragging) return;
 
-    const toggleMute = useCallback(() => {
-        setIsMuted(prev => !prev);
-    }, []);
-
-    const handleVolumeChange = useCallback((value: number[]) => {
-        const newVolume = value[0];
-        setVolume(newVolume);
-        if (newVolume > 0 && isMuted) {
-            setIsMuted(false);
-        }
-    }, [isMuted]);
-
-    const handleProgressChange = useCallback((value: number[]) => {
-        const newProgress = value[0];
-        setProgress(newProgress);
-        setCurrentTime(newProgress);
-
-        const audio = audioRef.current;
-        if (audio && duration > 0) {
-            audio.currentTime = newProgress;
-        }
-    }, [duration, setCurrentTime]);
-
-    const handleProgressDragStart = useCallback(() => {
-        setIsDragging(true);
-    }, []);
-
-    const handleProgressDragEnd = useCallback(() => {
-        setIsDragging(false);
-    }, []);
-
-    const closePlayers = useCallback(() => {
-        setCurrentSong(null);
-    }, [setCurrentSong]);
-
-    // Enhanced player renderer with better error handling
-    const renderPlayer = () => {
-        if (!currentSong) return null;
-
-        const platform = currentSong.platform?.name?.toLowerCase() || 'local';
-        const filePath = currentSong.download?.file_path || '';
-
-        if (platform === 'youtube') {
-            const videoId = new URL(filePath).searchParams.get('v');
-            if (!videoId) {
-                toast.error('Invalid YouTube URL');
-                return null;
+        const interval = setInterval(() => {
+            const audio = audioRef.current;
+            if (audio && !isDragging) {
+                const currentTime = audio.currentTime;
+                setProgress(currentTime);
+                setCurrentTime(currentTime);
             }
-            return (
-                <iframe
-                    src={`https://www.youtube.com/embed/${videoId}?autoplay=${isPlaying ? 1 : 0}&controls=0&modestbranding=1&rel=0`}
-                    width="100%"
-                    height="100"
-                    allow="autoplay"
-                    frameBorder="0"
-                    style={{ display: 'none' }} // Hide iframe player
-                    title="YouTube Player"
-                />
-            );
-        } else if (platform === 'soundcloud') {
-            return (
-                <iframe
-                    width="100%"
-                    height="100"
-                    scrolling="no"
-                    frameBorder="no"
-                    allow="autoplay"
-                    src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(filePath)}&auto_play=${isPlaying}&hide_related=true&show_artwork=false&visual=false`}
-                    style={{ display: 'none' }} // Hide iframe player
-                    title="SoundCloud Player"
-                />
-            );
-        } else {
-            return (
-                <audio 
-                    ref={audioRef} 
-                    src={filePath}
-                    preload="metadata"
-                />
-            );
-        }
-    };
+        }, 100); // Update every 100ms for smoother progress
+
+        return () => clearInterval(interval);
+    }, [isPlaying, isDragging, setCurrentTime]);
 
     if (!currentSong) {
         return null;
     }
 
+    // Get audio source - use server streaming endpoint
+    const getAudioSource = () => {
+        if (!currentSong?.id) return '';
+        
+        // Always use the server streaming endpoint for better seeking support
+        return audioService.getStreamUrl(currentSong.id);
+    };
+
     return (
         <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg">
-            {renderPlayer()}
+            {/* Audio element */}
+            <audio
+                ref={audioRef}
+                src={getAudioSource()}
+                onPlay={handlePlay}
+                onPause={handlePause}
+                onEnded={handleEnded}
+                onLoadedMetadata={handleLoadedMetadata}
+                onCanPlay={handleCanPlay}
+                onTimeUpdate={handleTimeUpdate}
+                onError={handleError}
+                onLoadStart={handleLoadStart}
+                onWaiting={handleWaiting}
+                onCanPlayThrough={handleCanPlayThrough}
+                preload="metadata"
+                crossOrigin="anonymous"
+                style={{ display: 'none' }}
+            />
+
             <div className="max-w-7xl mx-auto p-4">
                 <div className="flex items-center justify-between gap-4">
                     {/* Song Info */}
@@ -291,17 +298,22 @@ export default function PlayerBar() {
                             <Slider
                                 value={[progress]}
                                 max={duration || 100}
-                                step={1}
+                                step={0.1}
                                 onValueChange={handleProgressChange}
                                 onPointerDown={handleProgressDragStart}
                                 onPointerUp={handleProgressDragEnd}
-                                className="flex-1"
-                                disabled={!duration}
+                                className={`flex-1 ${!isSeekable ? 'opacity-50' : ''}`}
+                                disabled={!duration || !isSeekable}
                             />
                             <span className="text-xs text-muted-foreground w-10 font-mono">
                                 {formatTime(duration)}
                             </span>
                         </div>
+                        {!isSeekable && duration > 0 && (
+                            <div className="text-xs text-muted-foreground text-center">
+                                Seeking not available for this audio source
+                            </div>
+                        )}
                     </div>
 
                     {/* Volume and Close */}
@@ -319,7 +331,7 @@ export default function PlayerBar() {
                             )}
                         </Button>
                         <Slider
-                            value={[isMuted ? 0 : volume]}
+                            value={[isMuted ? 0 : volume * 100]}
                             max={100}
                             step={1}
                             onValueChange={handleVolumeChange}

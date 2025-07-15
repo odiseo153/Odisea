@@ -51,12 +51,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return inertia('websocket-test');
     })->name('websocket.test');
 
-    // Audio streaming routes
-    Route::controller(AudioController::class)->group(function () {
-        Route::get('audio/stream/{songId}', 'stream')->name('audio.stream');
-        Route::get('audio/stream-range/{songId}', 'streamWithRange')->name('audio.stream.range');
-        Route::get('audio/download-url/{songId}', 'getDownloadUrl')->name('audio.download.url');
-    });
+    // Audio streaming routes with CORS support
+   
 
 });
 

@@ -8,25 +8,42 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 
+/**
+ * Modelo User: gestiona usuarios del sistema y sus autenticaciones.
+ *
+ * @property string $id UUID único del usuario
+ * @property string $name Nombre del usuario
+ * @property string $email Email único del usuario
+ * @property ?Carbon $email_verified_at Fecha de verificación del email (opcional)
+ * @property ?string $avatar URL del avatar del usuario (opcional)
+ * @property string $password Contraseña hasheada
+ * @property ?string $remember_token Token de "recordar sesión" (opcional)
+ * @property Carbon $created_at Fecha de creación
+ * @property Carbon $updated_at Fecha de última actualización
+ * @property-read Collection|Playlist[] $playlists Playlists creadas por el usuario
+ * @property-read Collection|Song[] $favoriteSongs Canciones marcadas como favoritas
+ * @property-read Collection|FavoritePlaylist[] $favoritePlaylists Playlists favoritas del usuario
+ * @property-read Collection|Download[] $downloads Descargas realizadas por el usuario
+ * @property-read Collection|Song[] $songs Canciones agregadas por el usuario
+ * @property-read Collection|Album[] $albums Álbumes de propiedad del usuario
+ * @property-read Collection|Interaction[] $interactions Interacciones del usuario
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasUuids;
+
     protected $keyType = 'string';
     public $incrementing = false; // UUIDs are not auto-incrementing
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'avatar',
-    ];
 
+    /**
+     * Los atributos que se pueden asignar masivamente.
+     * Usando guarded vacío para permitir todos los campos.
+     */
+    protected $guarded = [];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -85,6 +102,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(Interaction::class);
     }
-
-
 }

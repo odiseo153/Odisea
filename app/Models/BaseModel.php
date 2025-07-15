@@ -8,7 +8,17 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Carbon;
 
+/**
+ * Clase base BaseModel: proporciona funcionalidad común a todos los modelos.
+ *
+ * @property string $id UUID único del modelo
+ * @property Carbon $created_at Fecha de creación
+ * @property Carbon $updated_at Fecha de última actualización
+ * @property ?Carbon $deleted_at Fecha de eliminación suave (opcional)
+ * @property-read string $created_at_formatted Fecha de creación formateada
+ */
 abstract class BaseModel extends Model
 {
     use SoftDeletes, HasFactory, HasUuids;
@@ -16,7 +26,11 @@ abstract class BaseModel extends Model
     protected $keyType = 'string';
     public $incrementing = false; // UUIDs no son auto-incrementales
 
-    protected $guarded = []; // Permitir asignación masiva
+    /**
+     * Los atributos que se pueden asignar masivamente.
+     * Usando guarded vacío para permitir todos los campos.
+     */
+    protected $guarded = [];
 
     protected $hidden = ['deleted_at',  'updated_at']; // Ocultar relaciones intermedias por defecto
 

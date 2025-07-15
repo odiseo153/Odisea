@@ -3,12 +3,44 @@
 namespace App\Models;
 
 use App\Traits\ModelHelperTrait;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 
+/**
+ * Modelo Song: gestiona canciones y sus metadatos.
+ *
+ * @property string $id UUID único de la canción
+ * @property ?string $platform_id UUID de la plataforma (opcional)
+ * @property ?string $artist_id UUID del artista (opcional)
+ * @property ?string $album_id UUID del álbum (opcional)
+ * @property string $added_by UUID del usuario que agregó la canción
+ * @property string $title Título de la canción
+ * @property int $duration Duración en segundos
+ * @property ?string $cover_url URL de la portada (opcional)
+ * @property Carbon $created_at Fecha de creación
+ * @property Carbon $updated_at Fecha de última actualización
+ * @property ?Carbon $deleted_at Fecha de eliminación suave (opcional)
+ * @property-read ?Platform $platform Plataforma de origen
+ * @property-read ?Artist $artist Artista de la canción
+ * @property-read ?Album $album Álbum de la canción
+ * @property-read User $addedBy Usuario que agregó la canción
+ * @property-read ?Download $download Descarga asociada
+ * @property-read Collection|Gender[] $genders Géneros de la canción
+ * @property-read Collection|User[] $favoriteUsers Usuarios que marcaron como favorita
+ * @property-read Collection|Interaction[] $interactions Interacciones de la canción
+ * @property-read Collection|Song[] $other_songs Otras canciones del mismo artista
+ * @property-read int $play_count Número de reproducciones
+ */
 class Song extends BaseModel
 {
     use ModelHelperTrait;
 
-    protected $fillable = ['platform_id', 'artist_id', 'album_id', 'title', 'duration', 'cover_url', 'added_by'];
+    /**
+     * Los atributos que se pueden asignar masivamente.
+     * Usando guarded vacío para permitir todos los campos.
+     */
+    protected $guarded = [];
+
     // Removed heavy eager loading to improve performance
      protected $with = ['artist','download'];
     // Removed appends to avoid N+1 query problems
