@@ -5,36 +5,33 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Artist, Platform } from '@/types';
-import { AvatarFallback, Avatar, AvatarImage } from '@/components/ui/avatar';
-import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePage } from '@inertiajs/react';
 import { SharedData } from '@/types';
 import { songService } from '@/services/songService';
 import { platformService } from '@/services/platformService';
 import { artistService } from '@/services/artistService';
-import { X } from 'lucide-react';
-import { Upload } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
+import { Select, Avatar } from 'antd';
+
+const initialSongData = {
+    title: '',
+    artist_id: '',
+    platform_id: '',
+    cover_url: '',
+    duration: 0,
+    file_path: '',
+};
 
 export default function AddSong() {
     const [isOpen, setIsOpen] = useState(false);
     const [platforms, setPlatforms] = useState<Platform[]>([]);
-    const [filteredPlatforms, setFilteredPlatforms] = useState<Platform[]>([]);
     const [artists, setArtists] = useState<Artist[]>([]);
-    const [filteredArtists, setFilteredArtists] = useState<Artist[]>([]);
-    const [songData, setSongData] = useState({
-        title: '',
-        artist_id: '',
-        album_id: '',
-        platform_id: '',
-        cover_url: '',
-        duration: 0,
-        file_path: '',
-    });
-    const {auth} = usePage<SharedData>().props;
-    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [songData, setSongData] = useState(initialSongData);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [imageType, setImageType] = useState<'url' | 'file'>('url');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const audioFileRef = useRef<HTMLInputElement>(null);
+    const { auth } = usePage<SharedData>().props;
 
 
     useEffect(() => {
@@ -46,17 +43,15 @@ export default function AddSong() {
                 ]);
 
                 setPlatforms(platformsData.data);
-                setFilteredPlatforms(platformsData.data);
                 setArtists(artistsData.artists);
-                setFilteredArtists(artistsData.artists);
             } catch (err) {
                 console.error('Error fetching data:', err);
                 toast.error('Failed to load required data');
             }
         };
 
-        fetchData();
-    }, []);
+        if (isOpen) fetchData();
+    }, [isOpen]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -66,104 +61,117 @@ export default function AddSong() {
         }));
     };
 
+    const resetForm = () => {
+        setSongData(initialSongData);
+        setImagePreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        if (audioFileRef.current) audioFileRef.current.value = '';
+    };
+
     const handleRemoveImage = () => {
-        setImageFile(null)
-        setImagePreview(null)
-        setSongData({...songData, cover_url: ''})
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ''
-        }
-    }
+        setImagePreview(null);
+        setSongData(prev => ({ ...prev, cover_url: '' }));
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
 
     const handleUrlChange = (url: string) => {
-        setSongData({...songData, cover_url: url})
-        setImagePreview(url)
-    }
+        setSongData(prev => ({ ...prev, cover_url: url }));
+        setImagePreview(url);
+    };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-
         if (file) {
-            const audioElement = new Audio(URL.createObjectURL(file));
-
             const reader = new FileReader();
             reader.onloadend = () => {
-                setSongData(prev => ({
-                    ...prev,
-                    file_path: reader.result as string,
-                    duration: audioElement.duration
-                }));
+                const result = reader.result as string;
+                setSongData(prev => ({ ...prev, cover_url: result }));
+                setImagePreview(result);
             };
             reader.readAsDataURL(file);
         }
     };
 
-    const handlePlatformSelect = (value: string) => {
-        setSongData(prev => ({
-            ...prev,
-            platform_id: value
-        }));
-    };
-/*
-const handlePlatformSearch = (value: string) => {
-    const filtered = platforms.filter(platform =>
-    platform.name.toLowerCase().includes(value.toLowerCase())
-);
-setFilteredPlatforms(filtered);
-};
-*/
+    const handleAudioFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            const audio = new Audio(URL.createObjectURL(file));
 
-    const handleArtistSelect = (value: string) => {
-        setSongData(prev => ({
-            ...prev,
-            artist_id: value
-        }));
+            audio.onloadedmetadata = () => {
+                setSongData(prev => ({ ...prev, duration: Math.round(audio.duration) }));
+                URL.revokeObjectURL(audio.src);
+            };
+
+            reader.onloadend = () => {
+                setSongData(prev => ({ ...prev, file_path: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleSelectChange = (field: string) => (value: string) => {
+        setSongData(prev => ({ ...prev, [field]: value }));
     };
 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        try {
-            // Validate required fields
-            if (!songData?.title || !songData?.artist_id || !songData?.file_path || !songData?.platform_id) {
-                toast.error('Please fill in all required fields');
-                return;
-            }
+        if (!songData.title || !songData.artist_id || !songData.file_path || !songData.platform_id) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
 
-            // Prepare form data for submission
+        try {
             const formData = new FormData();
             Object.entries(songData).forEach(([key, value]) => {
-                formData.append(key, value as string);
+                formData.append(key, String(value));
             });
 
-           await songService.createSong(auth.user.id as string, formData);
-
+            await songService.createSong(auth.user.id as string, formData);
             toast.success('Song added successfully!');
-
-            // Reset form
-            setSongData({
-                title: '',
-                artist_id: '',
-                album_id: '',
-                platform_id: '',
-                cover_url: '',
-                duration: 0,
-                file_path:'',
-            });
-
-            // Clear file input
-            const fileInput = document.getElementById('song-file') as HTMLInputElement;
-            if (fileInput) fileInput.value = '';
-
-            // Close modal
+            resetForm();
             setIsOpen(false);
-
         } catch (error) {
             console.error('Error adding song:', error);
             toast.error('Failed to add song');
         }
     };
+
+    // Custom option renderer for artists with images
+    const renderArtistOption = (artist: Artist) => ({
+        value: artist.id,
+        label: (
+            <div className="flex items-center gap-2">
+                <Avatar
+                    size={24}
+                    src={artist.image_url}
+                    style={{ backgroundColor: '#f0f0f0' }}
+                >
+                    {artist.name.charAt(0).toUpperCase()}
+                </Avatar>
+                <span>{artist.name}</span>
+            </div>
+        ),
+    });
+
+    // Custom option renderer for platforms with images
+    const renderPlatformOption = (platform: Platform) => ({
+        value: platform.id,
+        label: (
+            <div className="flex items-center gap-2">
+                <Avatar
+                    size={24}
+                    src={platform.logo_url}
+                    style={{ backgroundColor: '#f0f0f0' }}
+                >
+                    {platform.name.charAt(0).toUpperCase()}
+                </Avatar>
+                <span>{platform.name}</span>
+            </div>
+        ),
+    });
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -191,57 +199,35 @@ setFilteredPlatforms(filtered);
                     <div>
                         <Label htmlFor="artist">Artist</Label>
                         <Select
-                            onValueChange={handleArtistSelect}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select an artist" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {artists.map((artist) => (
-                                    <SelectItem key={artist.id} value={artist.id}>
-                                        {artist.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        </div>
-
-                    <div>
-                        <Label htmlFor="album">Album (Optional)</Label>
-                        <Input
-                            type="text"
-                            id="album"
-                            name="album"
-                            value={songData.album_id}
-                            onChange={handleInputChange}
-                            placeholder="Enter album name"
+                            showSearch
+                            placeholder="Select an artist"
+                            optionFilterProp="children"
+                            onChange={handleSelectChange('artist_id')}
+                            filterOption={(input, option) =>
+                                (option?.label as any)?.props?.children?.[1]?.props?.children
+                                    ?.toLowerCase()
+                                    ?.includes(input.toLowerCase()) ?? false
+                            }
+                            options={artists.map(renderArtistOption)}
+                            style={{ width: '100%' }}
                         />
                     </div>
 
                     <div>
                         <Label htmlFor="platform">Platform</Label>
                         <Select
-                            onValueChange={handlePlatformSelect}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a platform" />
-                            </SelectTrigger>
-                            <SelectContent >
-                            {platforms.map((platform) => (
-                                <SelectItem key={platform.id} value={platform.id}>
-                                    <div className="flex items-center gap-2">
-                                        <Avatar className="h-8 w-8 overflow-hidden rounded-full">
-                                            <AvatarImage src={platform?.logo_url} alt={platform.name} />
-                                            <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                                {platform.name.charAt(0)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <span>{platform.name}</span>
-                                    </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            showSearch
+                            placeholder="Select a platform"
+                            optionFilterProp="children"
+                            onChange={handleSelectChange('platform_id')}
+                            filterOption={(input, option) =>
+                                (option?.label as any)?.props?.children?.[1]?.props?.children
+                                    ?.toLowerCase()
+                                    ?.includes(input.toLowerCase()) ?? false
+                            }
+                            options={platforms.map(renderPlatformOption)}
+                            style={{ width: '100%' }}
+                        />
                     </div>
 
                     <div>
@@ -249,9 +235,9 @@ setFilteredPlatforms(filtered);
                         <Input
                             type="file"
                             id="song-file"
+                            ref={audioFileRef}
                             accept="audio/*"
-                            name="file_path"
-                            onChange={handleFileChange}
+                            onChange={handleAudioFileChange}
                             required
                         />
                     </div>
@@ -326,7 +312,7 @@ setFilteredPlatforms(filtered);
                                             type="file"
                                             ref={fileInputRef}
                                             accept=".jpg,.jpeg,.png"
-                                            onChange={handleFileChange}
+                                            onChange={handleImageFileChange}
                                             className="hidden"
                                             id="file-upload"
                                         />
@@ -337,7 +323,7 @@ setFilteredPlatforms(filtered);
                                             className="flex-1"
                                         >
                                             <Upload className="mr-2 h-4 w-4" />
-                                            {imageFile ? imageFile.name : "Choose Image"}
+                                            Choose Image
                                         </Button>
                                     </div>
                                     <p className="text-xs text-muted-foreground">

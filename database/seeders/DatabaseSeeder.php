@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
         $testUser = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'is_admin' => true
         ]);
 
         // Create additional users
@@ -96,6 +97,7 @@ class DatabaseSeeder extends Seeder
                 'duration' => 274, // approximately 4:34
                 'file_path' => '/storage/downloads/not_like_us.mp3',
                 'artist_id' => $artists[0]->id,
+                'cover_url' => 'https://i.scdn.co/image/ab67616d0000b2731ea0c62b2339cbf493a999ad',
                 'album_id' => $albums[0]->id,
             ],
             [
@@ -103,6 +105,7 @@ class DatabaseSeeder extends Seeder
                 'duration' => 215, // approximately 3:35
                 'file_path' => '/storage/downloads/ride.mp3',
                 'artist_id' => $artists[1]->id,
+                'cover_url' => 'https://i1.sndcdn.com/artworks-cfKd70yOUZZ1-0-t500x500.jpg',
                 'album_id' => $albums[1]->id,
             ],
             [
@@ -110,6 +113,7 @@ class DatabaseSeeder extends Seeder
                 'duration' => 195, // approximately 3:15
                 'file_path' => '/storage/downloads/come_to_play.mp3',
                 'artist_id' => $artists[2]->id,
+                'cover_url' => 'https://i.scdn.co/image/ab67616d0000b273c804a75ef762b8b0837da1a9',
                 'album_id' => $albums[2]->id,
             ],
             [
@@ -117,6 +121,7 @@ class DatabaseSeeder extends Seeder
                 'duration' => 173, // approximately 2:53
                 'file_path' => '/storage/downloads/enemy.mp3',
                 'artist_id' => $artists[3]->id,
+                'cover_url' => 'https://i.scdn.co/image/ab67616d0000b273c804a75ef762b8b0837da1a9',
                 'album_id' => $albums[3]->id,
             ],
             [
@@ -124,6 +129,7 @@ class DatabaseSeeder extends Seeder
                 'duration' => 199, // approximately 3:19
                 'file_path' => '/storage/downloads/Mother Mother - Verbatim.mp3',
                 'artist_id' => $artists[4]->id,
+                'cover_url' => 'https://i1.sndcdn.com/artworks-Pvrtpj26G27x-0-t500x500.jpg',
                 'album_id' => $albums[4]->id,
             ],
             [
@@ -131,6 +137,7 @@ class DatabaseSeeder extends Seeder
                 'duration' => 235, // approximately 3:55
                 'file_path' => '/storage/downloads/Tek_it.mp3',
                 'artist_id' => $artists[5]->id,
+                'cover_url' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxmixVnlhJq6BYozdx6F3QjQjzuP0HLAoAOw&s',
                 'album_id' => $albums[5]->id,
             ],
         ];
@@ -144,7 +151,7 @@ class DatabaseSeeder extends Seeder
                 'album_id' => $songData['album_id'],
                 'platform_id' => $platforms->random()->id,
                 'added_by' => $testUser->id,
-                'cover_url' => 'https://picsum.photos/400/400?' . rand(1000, 9999),
+                'cover_url' => $songData['cover_url']
             ]);
 
             // Create download record for each song
@@ -238,30 +245,14 @@ class DatabaseSeeder extends Seeder
             $song->genders()->attach($genders->random(rand(1, 2)));
         }
 
-        // Create some additional random songs for variety
-        $additionalSongs = Song::factory(10)->create([
-            'added_by' => $testUser->id,
-            'platform_id' => $platforms->random()->id,
-        ]);
-
-        foreach ($additionalSongs as $song) {
-            // Create interactions
-            Interaction::factory(rand(1, 10))->create([
-                'interactable_type' => Song::class,
-                'interactable_id' => $song->id,
-                'user_id' => $allUsers->random()->id,
-            ]);
-
-            // Associate with genders
-            $song->genders()->attach($genders->random(rand(1, 2)));
-        }
+        
 
         echo "Database seeded successfully!\n";
         echo "Created:\n";
         echo "- " . $allUsers->count() . " users\n";
         echo "- " . $artists->count() . " artists\n";
         echo "- " . $albums->count() . " albums\n";
-        echo "- " . ($songs->count() + $additionalSongs->count()) . " songs\n";
+        echo "- " . ($songs->count()) . " songs\n";
         echo "- " . $playlists->count() . " playlists (+ additional user playlists)\n";
         echo "- " . $platforms->count() . " platforms\n";
         echo "- " . $genders->count() . " genders\n";

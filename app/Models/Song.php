@@ -44,7 +44,7 @@ class Song extends BaseModel
     // Removed heavy eager loading to improve performance
      protected $with = ['artist','download'];
     // Removed appends to avoid N+1 query problems
-    // protected $appends = ['other_songs','play_count'];
+     protected $appends = ['is_favorite'];
 
     // Use this method when you need minimal Song data
     public function scopeMinimal($query)
@@ -107,6 +107,11 @@ class Song extends BaseModel
             ->get();
     }
 
+    public function getIsFavoriteAttribute()
+    {
+        return $this->favoriteUsers()->where('user_id', auth()->id())->exists();
+    }
+    
     public function getPlayCount()
     {
         return $this->interactions()->sum('play_count') ?? 0;

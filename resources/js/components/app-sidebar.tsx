@@ -1,9 +1,16 @@
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { 
+    Sidebar, 
+    SidebarContent, 
+    SidebarFooter, 
+    SidebarHeader, 
+    SidebarMenu, 
+    SidebarMenuButton, 
+    SidebarMenuItem 
+} from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Album, Heart, Home, List, Music, Music2, Users, Wifi } from 'lucide-react';
-import PlayerBar from './player-bar';
 import AppLogoIcon from './app-logo-icon';
 import { Link } from '@inertiajs/react';
 
@@ -33,18 +40,6 @@ const mainNavItems: NavItem[] = [
         href: '/artists',
         icon: Users,
     },
-/*
-{
-    title: 'Offline Musics',
-    href: '/offline-musics',
-    icon: Music,
-},
-{
-    title: 'Favorites',
-    href: '/favorites',
-    icon: Heart,
-},
-*/
     {
         title: 'WebSocket Test',
         href: '/websocket-test',
@@ -61,7 +56,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/dashboard" prefetch>
-                    <NavUser />
+                                <NavUser />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -73,7 +68,16 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                    <PlayerBar />
+                {/* Footer simplificado - sin PlayerBar */}
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton size="sm" asChild>
+                            <Link href="/settings" className="text-xs text-muted-foreground">
+                                Settings
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
             </SidebarFooter>
         </Sidebar>
     );

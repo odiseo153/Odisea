@@ -5,17 +5,27 @@ import { SharedData, Song } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { songService } from '@/services/songService';
+import {useState} from "react";
+
+
 
 export function MusicCard({ song, destroy }: { song: Song, destroy?: (song: Song) => void }) {
-    const { currentSong, isPlaying, playSong, togglePlay, handleFavorite } = usePlayer();
+  const [isLiked, setIsLiked] = useState(song.is_favorite)
+  const { currentSong, isPlaying, playSong, togglePlay, handleFavorite } = usePlayer();
     const { auth } = usePage<SharedData>().props;
 
+console.log(song);
 
     const handleDestroy = () => {
         if (destroy) {
             destroy(song);
         }
     }
+
+    const HandleFavorite = (song_id: string, user_id: string) => {
+      setIsLiked(!isLiked);
+      handleFavorite(song_id, user_id);
+  }
 
     const handlePlay = () => {
         if (currentSong?.id === song.id) {
@@ -77,11 +87,11 @@ export function MusicCard({ song, destroy }: { song: Song, destroy?: (song: Song
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0"
-              onClick={() => handleFavorite(song.id, auth.user.id || "")}
+              onClick={() => HandleFavorite(song.id, auth.user.id || "")}
             >
               <Heart
                 className={`w-4 h-4 transition-colors ${
-                    song.is_favorite
+                  isLiked
                     ? 'text-red-500 fill-red-500'
                     : 'text-muted-foreground hover:text-red-400'
                 }`}
@@ -98,7 +108,7 @@ export function MusicCard({ song, destroy }: { song: Song, destroy?: (song: Song
           </div>
 
           {song.duration && (
-            <span className="text-sm text-muted-foreground min-w-fit">{song.duration}</span>
+            <span className="text-sm text-muted-foreground min-w-fit">{Number.parseInt(song.duration / 60)} min</span>
           )}
         </div>
 

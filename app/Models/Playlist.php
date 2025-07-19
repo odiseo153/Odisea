@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
+use App\Traits\ModelHelperTrait;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Modelo Playlist: gestiona listas de reproducción y sus metadatos.
@@ -23,6 +24,8 @@ use Illuminate\Support\Carbon;
  */
 class Playlist extends BaseModel
 {
+    use ModelHelperTrait;
+
     /**
      * Los atributos que se pueden asignar masivamente.
      * Usando guarded vacío para permitir todos los campos.
@@ -50,6 +53,16 @@ class Playlist extends BaseModel
     public function getPlayCountAttribute()
     {
         return $this->interactions()->sum('play_count');
+    }
+
+    public function setCoverImageAttribute($value)
+    {
+        // Si el valor es base64, lo procesamos, si no, lo asignamos tal cual
+        if ($this->isBase64($value)) {
+            $this->attributes['cover_image'] = $this->handleBase64File($value, 'downloads');
+        } else {
+            $this->attributes['cover_image'] = $value;
+        }
     }
 }
 

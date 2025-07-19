@@ -35,9 +35,6 @@ class PlaylistService extends BaseService
 
     public function createPlaylist(array $data)
     {
-        // Handle cover image
-        $data = $this->handleCoverImage($data);
-
         $playlist = new Playlist();
         $playlist->fill($data);
 
@@ -62,37 +59,5 @@ class PlaylistService extends BaseService
         return $this->repository->addSong($playlist, $songId);
     }
 
-    private function handleCoverImage(array $data, ?Playlist $playlist = null): array
-    {
-        // Handle file upload
-        if (isset($data['cover_image']) && $data['cover_image'] instanceof UploadedFile) {
-            // Delete old image if updating
-            if ($playlist && $playlist->cover_image && !filter_var($playlist->cover_image, FILTER_VALIDATE_URL)) {
-                Storage::disk('public')->delete($playlist->cover_image);
-            }
-
-            $file = $data['cover_image'];
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('playlist_covers', $fileName, 'public');
-
-            $data['cover_image'] = Storage::url($path);
-
-        }
-        // Handle URL
-        elseif (isset($data['cover_image_url']) && !empty($data['cover_image_url'])) {
-            // Delete old uploaded image if it exists and we're switching to URL
-            if ($playlist && $playlist->cover_image && !filter_var($playlist->cover_image, FILTER_VALIDATE_URL)) {
-                Storage::disk('public')->delete($playlist->cover_image);
-            }
-
-            $data['cover_image'] = $data['cover_image_url'];
-            unset($data['cover_image_url']);
-        }
-        // Remove cover_image_url if it exists but is empty
-        elseif (isset($data['cover_image_url'])) {
-            unset($data['cover_image_url']);
-        }
-
-        return $data;
-    }
+   
 }

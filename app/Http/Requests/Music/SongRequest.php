@@ -23,7 +23,6 @@ class SongRequest extends BaseRequest
         return [
             'platform_id' => 'required|string|exists:platforms,id',
             'artist_id' => 'required|string|exists:artists,id',
-            'album_id' => 'nullable|string|exists:albums,id',
             'title' => 'required|string|max:255',
             'duration' => 'nullable|integer|min:1',
             'cover_url' => 'nullable|url|max:500',

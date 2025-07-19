@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property ?Carbon $email_verified_at Fecha de verificación del email (opcional)
  * @property ?string $avatar URL del avatar del usuario (opcional)
  * @property string $password Contraseña hasheada
+ * @property bool $is_admin para saber si es admin
  * @property ?string $remember_token Token de "recordar sesión" (opcional)
  * @property Carbon $created_at Fecha de creación
  * @property Carbon $updated_at Fecha de última actualización

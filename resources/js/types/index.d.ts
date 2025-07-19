@@ -64,6 +64,7 @@ export interface Song {
     other_songs?: Song[];
     created_at?: string;
     play_count?: number;
+    interactions?: Interaction[];
 }
 
 export interface Artist {

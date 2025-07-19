@@ -19,8 +19,7 @@ class PlaylistRequest extends BaseRequest
             ],
             'is_public' => 'boolean',
             'user_id' => 'sometimes|exists:users,id',
-            'cover_image' => 'sometimes|image|mimes:jpeg,jpg,png|max:5120', // 5MB max
-            'cover_image_url' => 'sometimes|nullable|url|max:2048',
+            'cover_image' => 'sometimes|string', // 5MB max
         ];
     }
 

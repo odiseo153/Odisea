@@ -28,7 +28,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
 import { BreadcrumbItem, SharedData, Song } from "@/types"
-import PlayerBar from "@/components/player-bar"
 import AppLayout from "@/layouts/app-layout"
 import { usePlayer } from "@/contexts/PlayerContext"
 import EditSong from '@/components/Music/EditSong';
@@ -42,19 +41,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function SongById({ song }: { song: Song }) {
-  const [isPlaying, setIsPlaying] = React.useState(false)
   const [isLiked, setIsLiked] = React.useState(song.is_favorite)
   const [activeTab, setActiveTab] = React.useState("lyrics")
-  const { handleFavorite } = usePlayer();
+  const { handleFavorite,togglePlay,setCurrentSong,isPlaying } = usePlayer();
   const { auth } = usePage<SharedData>().props;
 
-console.log(song)
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying)
-    if (!isPlaying) {
-      toast.success(`${song.title} by ${song.artist?.name}`)
-    }
-  }
 
   const toggleLike = () => {
     handleFavorite(song.id, auth.user.id as string)
@@ -62,6 +53,10 @@ console.log(song)
     toast.success(song.is_favorite ? "Removed from Liked Songs" : "Added to Liked Songs")
   }
 
+  const togglePlaySong = () => {
+    setCurrentSong(song);
+    togglePlay();
+  }
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -86,7 +81,7 @@ console.log(song)
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <Button size="icon" className="h-16 w-16 rounded-full" onClick={togglePlay}>
+              <Button size="icon" className="h-16 w-16 rounded-full" onClick={togglePlaySong}>
                 {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8 ml-1" />}
               </Button>
             </div>
@@ -138,7 +133,7 @@ console.log(song)
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button className="gap-2" onClick={togglePlay}>
+              <Button className="gap-2" onClick={togglePlaySong}>
                 {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 {isPlaying ? "Pause" : "Play"}
               </Button>
@@ -266,7 +261,6 @@ console.log(song)
       </div>
 
       {/* Player bar */}
-      <PlayerBar />
     </AppLayout>
   )
 }
