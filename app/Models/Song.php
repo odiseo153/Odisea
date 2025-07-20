@@ -33,7 +33,6 @@ use Illuminate\Support\Carbon;
  */
 class Song extends BaseModel
 {
-    use ModelHelperTrait;
 
     /**
      * Los atributos que se pueden asignar masivamente.

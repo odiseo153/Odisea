@@ -1,16 +1,15 @@
-import axios from 'axios';
+import { httpClient } from '@/lib/http';
 
 export class BaseService {
-    protected baseURL: string;
+    protected endpoint: string;
 
     constructor(endpoint: string) {
-        this.baseURL = `/api/${endpoint}`;
+        this.endpoint = endpoint;
     }
 
     protected async get(path: string = '') {
         try {
-            const response = await axios.get(`${this.baseURL}${path}`);
-            return response.data;
+            return await httpClient.get(`/${this.endpoint}${path}`);
         } catch (error) {
             throw this.handleError(error);
         }
@@ -18,8 +17,7 @@ export class BaseService {
 
     protected async post(path: string = '', data = {}) {
         try {
-            const response = await axios.post(`${this.baseURL}${path}`, data);
-            return response.data;
+            return await httpClient.post(`/${this.endpoint}${path}`, data);
         } catch (error) {
             throw this.handleError(error);
         }
@@ -27,8 +25,15 @@ export class BaseService {
 
     protected async put(path: string = '', data = {}) {
         try {
-            const response = await axios.put(`${this.baseURL}${path}`, data);
-            return response.data;
+            return await httpClient.put(`/${this.endpoint}${path}`, data);
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    }
+
+    protected async patch(path: string = '', data = {}) {
+        try {
+            return await httpClient.patch(`/${this.endpoint}${path}`, data);
         } catch (error) {
             throw this.handleError(error);
         }
@@ -36,8 +41,7 @@ export class BaseService {
 
     protected async delete(path: string = '') {
         try {
-            const response = await axios.delete(`${this.baseURL}${path}`);
-            return response.data;
+            return await httpClient.delete(`/${this.endpoint}${path}`);
         } catch (error) {
             throw this.handleError(error);
         }

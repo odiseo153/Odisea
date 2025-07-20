@@ -47,8 +47,9 @@ class SongController extends Controller
         }
     }
 
-    public function favorite(Song $song,User $user)
+    public function favorite(Request $request, Song $song)
     {
+        $user = $request->user();
         try {
             $user->favoriteSongs()->toggle($song);
             return response()->json([

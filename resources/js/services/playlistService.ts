@@ -37,6 +37,18 @@ export class PlaylistService extends BaseService {
     async togglePublicStatus(playlistId: string, isPublic: boolean) {
         return this.put(`/${playlistId}`, { is_public: isPublic });
     }
+
+    async toggleFavorite(playlistId: string) {
+        return this.post(`/${playlistId}/favorite`);
+    }
+
+    async checkFavorite(playlistId: string) {
+        return this.get(`/${playlistId}/favorite`);
+    }
+
+    async getUserFavorites() {
+        return this.get('/favorites/user');
+    }
 }
 
 export const playlistService = new PlaylistService();

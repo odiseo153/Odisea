@@ -17,9 +17,8 @@ use Illuminate\Support\Carbon;
  * @property-read User $user Usuario que marcó la canción como favorita
  * @property-read Song $song Canción marcada como favorita
  */
-class FavoriteSong extends Model
+class FavoriteSong extends BaseModel
 {
-    use SoftDeletes;
 
     /**
      * Los atributos que se pueden asignar masivamente.

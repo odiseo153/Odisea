@@ -41,10 +41,16 @@ const mainNavItems: NavItem[] = [
         icon: Users,
     },
     {
+        title: 'Favorites',
+        href: '/favorites',
+        icon: Heart,
+    },
+    {
         title: 'WebSocket Test',
         href: '/websocket-test',
         icon: Wifi,
     },
+    
 ];
 
 export function AppSidebar() {

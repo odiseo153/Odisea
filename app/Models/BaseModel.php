@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
+use App\Traits\ModelHelperTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Carbon;
 
 /**
  * Clase base BaseModel: proporciona funcionalidad común a todos los modelos.
@@ -21,10 +22,10 @@ use Illuminate\Support\Carbon;
  */
 abstract class BaseModel extends Model
 {
-    use SoftDeletes, HasFactory, HasUuids;
+    use SoftDeletes, HasFactory, HasUuids,ModelHelperTrait;
 
     protected $keyType = 'string';
-    public $incrementing = false; // UUIDs no son auto-incrementales
+    public $incrementing = false; // UUIDs are not auto-incrementing
 
     /**
      * Los atributos que se pueden asignar masivamente.

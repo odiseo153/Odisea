@@ -4,8 +4,41 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Playlist } from '@/types';
 import { Link } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import { playlistService } from '@/services/playlistService';
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
-export function PlaylistCard({ id, name,cover_image, creator, songs, is_public }: Playlist) {
+export function PlaylistCard({ id, name, cover_image, creator, songs, is_public, is_favorite = false }: Playlist) {
+  const { isAuthenticated } = useAuth();
+  const [isFavorited, setIsFavorited] = useState(is_favorite);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Update local state when prop changes
+  useEffect(() => {
+    setIsFavorited(is_favorite || false);
+  }, [is_favorite]);
+
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+
+    if (isLoading) return;
+
+    try {
+      setIsLoading(true);
+      const response = await playlistService.toggleFavorite(id!);
+      setIsFavorited(response.is_favorite);
+      toast.success(response.message);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast.error('Failed to update favorite status');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Card className="group hover:shadow-lg hover:ring-2 hover:ring-primary/30 transition-all duration-200 cursor-pointer bg-background/80">
       <CardContent className="p-4 flex flex-col gap-3 items-center">
@@ -57,10 +90,18 @@ export function PlaylistCard({ id, name,cover_image, creator, songs, is_public }
               variant="ghost"
               size="icon"
               className="h-9 w-9 p-0 hover:bg-primary/10 group"
-              aria-label="Like album"
+              aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
               tabIndex={0}
+              onClick={handleToggleFavorite}
+              disabled={isLoading}
             >
-              <Heart className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <Heart 
+                className={`w-5 h-5 transition-colors ${
+                  isFavorited 
+                    ? 'text-red-500 fill-red-500' 
+                    : 'text-muted-foreground group-hover:text-primary'
+                } ${isLoading ? 'opacity-50' : ''}`} 
+              />
             </Button>
             <Button
               variant="ghost"

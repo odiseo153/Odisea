@@ -41,12 +41,13 @@ interface PlaylistsProps {
 }
 
 export default function Playlists({ playlists, filters, sort }: PlaylistsProps) {
+    
+    console.log(playlists);
     const { data, setData, get } = useForm({
         filter: filters,
         sort: sort,
         per_page: playlists.per_page
     });
-console.log(playlists)
         const handleSearch = (field: keyof typeof data.filter, value: string | boolean | null) => {
         const newFilters = { ...data.filter };
         if (value === null || value === '') {

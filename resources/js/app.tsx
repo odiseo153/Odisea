@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 import { Toaster } from 'sonner';
 import { PlayerProvider } from './contexts/PlayerContext';
+import { httpClient } from './lib/http';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravels';
 
@@ -29,3 +30,6 @@ createInertiaApp({
 
 // This will set light / dark mode on load...
 initializeTheme();
+
+// Initialize HTTP client to load any existing tokens
+httpClient.getToken();

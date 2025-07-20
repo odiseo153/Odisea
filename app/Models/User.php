@@ -3,13 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Carbon;
 
 /**
  * Modelo User: gestiona usuarios del sistema y sus autenticaciones.
@@ -35,7 +36,7 @@ use Illuminate\Support\Carbon;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, HasUuids;
+    use HasApiTokens, HasFactory, Notifiable, HasUuids;
 
     protected $keyType = 'string';
     public $incrementing = false; // UUIDs are not auto-incrementing
@@ -81,7 +82,7 @@ class User extends Authenticatable
 
     public function favoritePlaylists()
     {
-        return $this->hasMany(FavoritePlaylist::class);
+        return $this->belongsToMany(Playlist::class,'favorite_playlists');
     }
 
     public function downloads()

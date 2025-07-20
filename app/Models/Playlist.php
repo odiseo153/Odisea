@@ -24,7 +24,6 @@ use Illuminate\Database\Eloquent\Collection;
  */
 class Playlist extends BaseModel
 {
-    use ModelHelperTrait;
 
     /**
      * Los atributos que se pueden asignar masivamente.
@@ -33,7 +32,7 @@ class Playlist extends BaseModel
     protected $guarded = [];
 
     protected $with = ['creator', 'songs'];
-    protected $appends = ['play_count'];
+    protected $appends = ['play_count','is_favorite'];
 
     public function creator()
     {
@@ -53,6 +52,26 @@ class Playlist extends BaseModel
     public function getPlayCountAttribute()
     {
         return $this->interactions()->sum('play_count');
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(FavoritePlaylist::class);
+    }
+
+    public function favoritedBy()
+    {
+        return $this->belongsToMany(User::class, 'favorite_playlists');
+    }
+
+    public function isFavoritedBy($userId)
+    {
+        return $this->favorites()->where('user_id', $userId)->exists();
+    }
+
+    public function getIsFavoriteAttribute()
+    {
+        return $this->favorites()->where('user_id', auth()->id())->exists();
     }
 
     public function setCoverImageAttribute($value)

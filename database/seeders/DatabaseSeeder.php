@@ -25,21 +25,19 @@ class DatabaseSeeder extends Seeder
         // Create test user
         $testUser = User::factory()->create([
             'name' => 'Test User',
+            'avatar' => 'https://i.pinimg.com/736x/bb/92/18/bb921809c898ccf383dfe4240c5e0c63.jpg',
             'email' => 'test@example.com',
             'is_admin' => true
         ]);
-
         // Create additional users
         $users = User::factory(5)->create();
         $allUsers = $users->push($testUser);
-
         // Create platforms
         $platforms = collect([
             Platform::factory()->create(['name' => 'Spotify', 'url' => 'https://spotify.com']),
             Platform::factory()->create(['name' => 'Apple Music', 'url' => 'https://music.apple.com']),
             Platform::factory()->create(['name' => 'YouTube Music', 'url' => 'https://music.youtube.com']),
         ]);
-
         // Create artists for our specific songs
         $artists = collect([
             Artist::factory()->create(['name' => 'Kendrick Lamar', 'bio' => 'American rapper and songwriter']),
@@ -49,7 +47,6 @@ class DatabaseSeeder extends Seeder
             Artist::factory()->create(['name' => 'Mother Mother', 'bio' => 'Canadian indie rock band']),
             Artist::factory()->create(['name' => 'Cafuné', 'bio' => 'American indie pop duo']),
         ]);
-
         // Create albums for our specific songs
         $albums = collect([
             Album::factory()->create([
@@ -89,7 +86,6 @@ class DatabaseSeeder extends Seeder
                 'year' => 2020
             ]),
         ]);
-
         // Create songs based on actual MP3 files
         $songsData = [
             [
@@ -143,7 +139,8 @@ class DatabaseSeeder extends Seeder
         ];
 
         $songs = collect();
-        foreach ($songsData as $songData) {
+        foreach ($songsData as $index => $songData) {
+            
             $song = Song::create([
                 'title' => $songData['title'],
                 'duration' => $songData['duration'],
@@ -153,7 +150,6 @@ class DatabaseSeeder extends Seeder
                 'added_by' => $testUser->id,
                 'cover_url' => $songData['cover_url']
             ]);
-
             // Create download record for each song
             Download::create([
                 'user_id' => $testUser->id,
@@ -163,7 +159,6 @@ class DatabaseSeeder extends Seeder
 
             $songs->push($song);
         }
-
         // Create playlists and add songs to them
         $playlists = collect([
             Playlist::factory()->create([
@@ -182,29 +177,20 @@ class DatabaseSeeder extends Seeder
                 'is_public' => false,
             ]),
         ]);
+        echo "Playlists created successfully!\n";
 
+        echo "Adding songs to playlists...\n";
         // Add songs to playlists
-        foreach ($playlists as $playlist) {
+        foreach ($playlists as $playlistIndex => $playlist) {
             $playlistSongs = $songs->random(rand(3, 5));
-            foreach ($playlistSongs as $song) {
+            foreach ($playlistSongs as $songIndex => $song) {
                 PlaylistSong::create([
                     'playlist_id' => $playlist->id,
                     'song_id' => $song->id,
                 ]);
             }
         }
-
-        // Add songs to favorites for all users
-        foreach ($allUsers as $user) {
-            $favoriteSongs = $songs->random(rand(2, 4));
-            foreach ($favoriteSongs as $song) {
-                FavoriteSong::create([
-                    'user_id' => $user->id,
-                    'song_id' => $song->id,
-                ]);
-            }
-        }
-
+        
         // Create additional playlists for other users
         foreach ($users as $user) {
             $userPlaylists = Playlist::factory(rand(1, 3))->create([

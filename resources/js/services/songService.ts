@@ -1,4 +1,3 @@
-import { Song } from '@/types';
 import { BaseService } from './baseService';
 import axios from 'axios';
 
@@ -31,8 +30,8 @@ export class SongService extends BaseService {
         return this.delete(`/${id}`);
     }
 
-    async toggleFavorite(songId: string, userId: string) {
-        return this.post(`/${songId}/favorite/${userId}`);
+    async toggleFavorite(songId: string) {
+        return this.post(`/${songId}/favorite`);
     }
 
     async addInteraciont(songId: string, userId: string) {

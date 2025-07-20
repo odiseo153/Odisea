@@ -14,8 +14,6 @@ export function MusicCard({ song, destroy }: { song: Song, destroy?: (song: Song
   const { currentSong, isPlaying, playSong, togglePlay, handleFavorite } = usePlayer();
     const { auth } = usePage<SharedData>().props;
 
-console.log(song);
-
     const handleDestroy = () => {
         if (destroy) {
             destroy(song);

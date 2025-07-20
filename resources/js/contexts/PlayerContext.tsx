@@ -100,7 +100,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const handleFavorite = async (song_id: string, user_id: string) => {
         try {
             await songService.toggleFavorite(song_id, user_id);
-            toast.success('Song favorited successfully');
         } catch (error) {
             console.error('Error favoriting song:', error);
             toast.error('Failed to favorite song');

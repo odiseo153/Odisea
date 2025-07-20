@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * Modelo GenderSong: gestiona relaciones entre géneros musicales y canciones.
@@ -16,8 +19,10 @@ use Illuminate\Support\Carbon;
  * @property-read Gender $gender Género musical asociado
  * @property-read Song $song Canción asociada
  */
-class GenderSong extends BaseModel
+class GenderSong extends Model
 {
+    use HasFactory, SoftDeletes;
+
     /**
      * Los atributos que se pueden asignar masivamente.
      * Usando guarded vacío para permitir todos los campos.

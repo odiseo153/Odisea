@@ -23,7 +23,6 @@ use Illuminate\Support\Carbon;
  */
 class Interaction extends BaseModel
 {
-    use HasFactory;
 
     protected $casts = [
         'liked' => 'boolean',

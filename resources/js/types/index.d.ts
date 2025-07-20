@@ -120,6 +120,7 @@ export interface Playlist {
     creator: User;
     songs?: Song[];
     created_at?: string;
+    is_favorite?: boolean;
 }
 
 export interface Download {

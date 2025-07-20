@@ -21,7 +21,6 @@ use Illuminate\Support\Carbon;
  */
 class Download extends BaseModel
 {
-    use ModelHelperTrait;
 
     /**
      * Los atributos que se pueden asignar masivamente.

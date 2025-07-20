@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Route;
-use App\Http\Requests\Auth\LoginRequest;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -30,8 +30,12 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
+        $deviceName = $request->input('device_name', 'web-session');
 
         $request->session()->regenerate();
+
+        // Create token for API usage even from web login
+        $token = $request->user()->createToken($deviceName)->plainTextToken;
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
@@ -41,11 +45,26 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Add logging to debug
+        \Log::info('Logout method called', [
+            'user_id' => $request->user()?->id,
+            'session_id' => $request->session()->getId(),
+            'request_method' => $request->method(),
+            'request_url' => $request->url()
+        ]);
+
+        // Delete all tokens for the user
+        if ($request->user()) {
+            $request->user()->tokens()->delete();
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        \Log::info('Logout completed successfully');
+
+        return redirect('/login');
     }
 }

@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
-import AppLogoIcon from '@/components/app-logo-icon';
+import { authService } from '@/services/authService';
 
 type LoginForm = {
     email: string;
@@ -29,8 +29,10 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     });
 
 
-    const submit: FormEventHandler = (e) => {
+    const submit: FormEventHandler = async (e) => {
         e.preventDefault();
+        const response = await authService.login(data);
+        console.log(response);
         post(route('login'), {
             onFinish: () => reset('password'),
         });
