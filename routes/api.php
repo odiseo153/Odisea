@@ -28,6 +28,7 @@ Route::controller(AudioController::class)->middleware('cors')->group(function ()
     Route::get('audio/info/{songId}', 'getAudioInfo')->name('audio.info');
     Route::get('audio/download-url/{songId}', 'getDownloadUrl')->name('audio.download.url');
     Route::options('audio/stream/{songId}', 'options')->name('audio.options');
+    Route::get('audio/debug/{song}', 'debugAudio')->name('audio.debug');
 });
 
 // Token creation for web-authenticated users

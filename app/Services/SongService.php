@@ -56,19 +56,38 @@ class SongService extends BaseService
 
     public function createSong(array $data, $user)
     {
-        \Log::info($user);
-        $song=new Song();
-        $data['added_by'] = $user->id;
-        $song->fill($data);
+        \Log::info('Creating song with data:', $data);
+        \Log::info('User:', ['id' => $user->id, 'name' => $user->name]);
+
+        $song = new Song();
+        $song->fill([
+            'title' => $data['title'],
+            'artist_id' => $data['artist_id'],
+            'album_id' => $data['album_id'] ?? null,
+            'duration' => $data['duration'] ?? null,
+            'platform_id' => $data['platform_id'],
+            'cover_url' => $data['cover_url'] ?? null,
+            'added_by' => $user->id, // Fix: use $user->id instead of $data['added_by']
+        ]);
 
         $song = $this->repository->create($song);
+        \Log::info('Song created:', ['id' => $song->id, 'title' => $song->title]);
+
+        // Create download record with the audio file
         $download = Download::create([
             'song_id' => $song->id,
             'user_id' => $user->id,
-            'file_path' => $data['file_path'],
+            'file_path' => $data['file_path'], // This will be processed by the Download model
         ]);
 
-        return $download;
+        \Log::info('Download created:', [
+            'id' => $download->id, 
+            'file_path' => $download->file_path,
+            'song_id' => $song->id
+        ]);
+
+        // Return the song with its download relationship
+        return $song->load('download');
     }
 
     public function updateSong(Song $song, array $data)

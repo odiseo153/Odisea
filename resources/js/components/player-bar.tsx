@@ -51,8 +51,9 @@ export default function PlayerBar() {
         togglePlay();
     }, [togglePlay, setCurrentTime]);
 
-    const handleError = useCallback(() => {
-        toast.error('Error loading audio');
+    const handleError = useCallback((e: any) => {
+        console.error('Audio error:', e);
+        toast.error('Error loading audio - check console for details');
         setIsLoading(false);
     }, []);
 
@@ -115,8 +116,12 @@ export default function PlayerBar() {
     if (!currentSong) return null;
 
     const getAudioSource = () => {
-        return currentSong?.id ? audioService.getStreamUrl(currentSong.id) : '';
+        const url = currentSong?.id ? audioService.getStreamUrl(currentSong.id) : '';
+        console.log('Audio source URL:', url);
+        return url;
     };
+
+
 
     return (
         <>
